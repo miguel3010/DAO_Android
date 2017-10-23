@@ -10,6 +10,7 @@ import android.util.Log;
 import com.miguel.dao_android.DataAccessLayer.Database.DBConnections.DBParameters.Node;
 import com.miguel.dao_android.DataAccessLayer.Database.DBConnections.DBParameters.Value;
 import com.miguel.dao_android.General.Util;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ public class SQLite_DBManager {
                 getLastId();
                 return true;
             } catch (Exception e) {
-
+                Log.d("SQL", e.getMessage());
             } finally {
                 this.close();
             }
@@ -65,8 +66,8 @@ public class SQLite_DBManager {
         if (Util.validateString(query) && valores != null) {
             try {
                 open();
-                NamedParamStatement p = new NamedParamStatement(conn, query);
-                SQLiteStatement cmd = prepareStatement(p, valores);
+                NamedParamStatement p = new NamedParamStatement(conn, query, valores);
+                SQLiteStatement cmd = p.getPreparedStatement();
                 System.out.print("SQL : " + cmd.toString());
                 cmd.execute();
                 getLastId();
@@ -107,30 +108,17 @@ public class SQLite_DBManager {
     public Cursor ExceuteSQL(String query, Value valores) {
         Cursor reader = null;
         if (Util.validateString(query)) {
-
             try {
                 open();
-                NamedParamStatement p = new NamedParamStatement(conn, query);
-                SQLiteStatement cmd = prepareStatement(p, valores);
-                System.out.print("SQL : " + cmd.toString());
-                reader = conn.rawQuery(cmd.toString(), null);
-            } catch (SQLException ex) {
+                NamedParamStatement p = new NamedParamStatement(conn, query, valores);
+                reader = conn.rawQuery(p.query, p.getValues());
+            } catch (Exception ex) {
+                Log.e("SQL", ex.getMessage());
             }
         }
         return reader;
     }
 
-    private SQLiteStatement prepareStatement(NamedParamStatement comand, Value valores) {
-        if (comand != null && valores != null && valores.getList() != null && valores.getList().size() > 0) {
-            List<Node> values = valores.getList();
-            if (values != null) {
-                for (Node prime : values) {
-                    comand.AddWithValue(prime.key, prime.value);
-                }
-            }
-        }
-        return comand.getPreparedStatement();
-    }
 
     public void close() {
         mDbHelper.close();
@@ -144,7 +132,11 @@ public class SQLite_DBManager {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            db.execSQL("codigo para crear db");
+            db.execSQL("Create table contacto (" +
+                    "_id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    " NOMBRE TEXT, " +
+                    "CORREO TEXT," +
+                    "SALARIO REAL);");
         }
 
         @Override
@@ -154,7 +146,7 @@ public class SQLite_DBManager {
                     + oldVersion + " to "
                     + newVersion + " which destroys all old data");
 
-            db.execSQL("DROP TABLE IF EXISTS code");
+            db.execSQL("DROP TABLE IF EXISTS contacto");
             onCreate(db);
         }
     }
@@ -164,8 +156,10 @@ class NamedParamStatement {
 
     private SQLiteStatement prepStmt;
     private List<String> fields = new ArrayList<String>();
+    public List<String> values = new ArrayList<>();
+    public String query;
 
-    public NamedParamStatement(SQLiteDatabase conn, String sql) throws SQLException {
+    public NamedParamStatement(SQLiteDatabase conn, String sql, Value values) throws SQLException {
         int pos;
         while ((pos = sql.indexOf("@")) != -1) {
             int end = -1;
@@ -181,8 +175,21 @@ class NamedParamStatement {
             fields.add(sql.substring(pos, end));
             sql = sql.substring(0, pos) + "?" + sql.substring(end);
         }
+        this.query = sql;
         prepStmt = conn.compileStatement(sql);
+        prepareStatement(values);
+    }
 
+
+    private void prepareStatement(Value valores) {
+        if (valores != null && valores.getList() != null && valores.getList().size() > 0) {
+            List<Node> values = valores.getList();
+            if (values != null) {
+                for (Node prime : values) {
+                    this.AddWithValue(prime.key, prime.value);
+                }
+            }
+        }
     }
 
     private int checkRegexPos(int end, int newPos) {
@@ -224,8 +231,23 @@ class NamedParamStatement {
         try {
             int i = getIndex(key);
             prepStmt.bindString(i, value);
+            if (i > values.size()) {
+                values.add(value);
+            } else {
+                values.add(i, value);
+            }
         } catch (Exception ex) {
             System.out.println(ex.toString());
         }
+    }
+
+    public String[] getValues() {
+        String[] d = new String[values.size()];
+        int i = 0;
+        while (i < values.size()) {
+            d[i] = values.get(i);
+            i++;
+        }
+        return d;
     }
 }

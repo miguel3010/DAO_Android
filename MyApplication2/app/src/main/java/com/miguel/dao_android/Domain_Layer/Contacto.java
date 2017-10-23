@@ -13,17 +13,25 @@ import com.miguel.dao_android.General.Util;
 import java.util.Date;
 
 
-public class User implements DTO {
+public class Contacto implements DTO {
     //Atributes
     private int id;
-    private String username;
-    private String email;
-    private Date createdDate;
+    private String nombre;
+    private String correo;
+    private float salario;
+
+    public float getSalario(){
+        return salario;
+    }
+
+    public void setSalario(float salario){
+        this.salario = salario;
+    }
 
     //Methods
     public boolean isValid() {
-        if (Util.validateString(username) &&
-                Util.validateString(email)) {
+        if (Util.validateString(nombre) &&
+                Util.validateString(correo)) {
             return true;
         }
         return false;
@@ -49,14 +57,14 @@ public class User implements DTO {
      * @param username
      */
     public void setusername(String username) {
-        this.username = username;
+        this.nombre = username;
     }
 
     /**
      *
      */
     public String getusername() {
-        return this.username;
+        return this.nombre;
     }
 
     /**
@@ -64,28 +72,13 @@ public class User implements DTO {
      * @param email
      */
     public void setemail(String email) {
-        this.email = email;
+        this.correo = email;
     }
 
     /**
      *
      */
     public String getemail() {
-        return this.email;
-    }
-
-    /**
-     *
-     * @param createdDate
-     */
-    public void setcreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
-    }
-
-    /**
-     *
-     */
-    public Date getcreatedDate() {
-        return this.createdDate;
+        return this.correo;
     }
 }

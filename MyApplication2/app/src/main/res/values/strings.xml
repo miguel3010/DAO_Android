@@ -1,3 +1,13 @@
-<resources>
-    <string name="app_name">DAO_Android</string>
+<?xml version="1.0" encoding="utf-8"?><resources>
+    <string name="app_name">EjemploBD</string>
+    <string name="action_settings">Settings</string>
+    <string name="str_nombre">Nombre</string>
+    <string name="str_correo">Correo Eléctrico</string>
+    <string name="str_insertar">Insertar</string>
+    <string name="str_delete">Eliminar</string>
+    <string name="str_update">Actualizar</string>
+    <string name="str_atras">Atras</string>
+    <string name="str_adelante">Adelante</string>
 </resources>
+
+
